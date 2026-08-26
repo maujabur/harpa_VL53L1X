@@ -5,6 +5,8 @@
 #include "measurement_status.h"
 #include "lidar_config.h"
 
+#ifndef PIO_UNIT_TESTING
+
 namespace {
 VL53L1X sensor;
 }  // namespace
@@ -52,3 +54,5 @@ void loop() {
 
     Serial.printf("Distancia: %u mm\n", distanceMm);
 }
+
+#endif  // PIO_UNIT_TESTING

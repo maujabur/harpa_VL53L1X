@@ -3,8 +3,6 @@
 
 #include "harpa_controller.h"
 
-#include "../../src/harpa_controller.cpp"
-
 HarpaController controller;
 LidarReadingArray readings{};
 
