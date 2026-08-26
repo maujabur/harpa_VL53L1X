@@ -41,8 +41,11 @@ void printTelemetryIfEnabled(const LidarReadingArray& readings,
     Serial.print("DIST");
     for (size_t index = 0; index < SENSOR_COUNT; ++index) {
         Serial.print(' ');
-        if (readings[index].valid) {
-            Serial.print(readings[index].distanceMm);
+        const LidarReading& reading = readings[index];
+        const bool fresh = nowMs - reading.updatedAtMs <=
+                           LidarDefaults::STALE_AFTER_MS;
+        if (reading.valid && fresh) {
+            Serial.print(reading.distanceMm);
         } else {
             Serial.print('X');
         }
@@ -61,7 +64,7 @@ void setup() {
     for (size_t index = 0; index < SENSOR_COUNT; ++index) {
         const char* result = lidars.sensorAvailable(index) ? "OK" : "FAILED";
         Serial.printf("Lidar %u: %s at 0x%02X\n", static_cast<unsigned>(index),
-                      result, SENSOR_CONFIGS[index].i2cAddress);
+                      result, static_cast<unsigned>(SENSOR_CONFIGS[index].i2cAddress));
     }
 }
 
