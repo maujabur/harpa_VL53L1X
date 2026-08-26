@@ -7,16 +7,17 @@ void LidarSensor::holdInReset(const LidarConfig& config) {
     pinMode(config_.xshutPin, OUTPUT);
     digitalWrite(config_.xshutPin, LOW);
     reading_ = {};
-    configured_ = false;
     available_ = false;
 }
 
 bool LidarSensor::begin(TwoWire& bus) {
-    pinMode(config_.xshutPin, INPUT);
-    delay(10);
+    driver_ = VL53L1X{};
 
     driver_.setBus(&bus);
     driver_.setTimeout(LidarDefaults::SENSOR_TIMEOUT_MS);
+
+    pinMode(config_.xshutPin, INPUT);
+    delay(10);
 
     if (!driver_.init()) {
         failAndReset();
@@ -57,7 +58,6 @@ bool LidarSensor::begin(TwoWire& bus) {
         return false;
     }
 
-    configured_ = true;
     available_ = true;
     return true;
 }
@@ -81,6 +81,5 @@ bool LidarSensor::available() const { return available_; }
 void LidarSensor::failAndReset() {
     pinMode(config_.xshutPin, OUTPUT);
     digitalWrite(config_.xshutPin, LOW);
-    configured_ = false;
     available_ = false;
 }

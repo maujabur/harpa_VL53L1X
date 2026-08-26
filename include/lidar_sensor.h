@@ -22,6 +22,5 @@ class LidarSensor {
     LidarConfig config_{};
     VL53L1X driver_{};
     LidarReading reading_{};
-    bool configured_ = false;
     bool available_ = false;
 };
