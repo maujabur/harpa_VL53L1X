@@ -20,6 +20,7 @@ struct LidarConfig {
 };
 
 constexpr size_t SENSOR_COUNT = 12;
+static_assert(SENSOR_COUNT == 12, "A harpa deve ter exatamente 12 sensores");
 using LidarConfigArray = std::array<LidarConfig, SENSOR_COUNT>;
 
 constexpr uint8_t spadNumberFromCoordinates(uint8_t x, uint8_t y) {

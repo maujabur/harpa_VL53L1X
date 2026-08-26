@@ -25,7 +25,7 @@ void printTransitions(const HarpaFrame& frame) {
 }
 
 void printTelemetryIfEnabled(const LidarReadingArray& readings,
-                             uint32_t nowMs) {
+                             const HarpaFrame& frame, uint32_t nowMs) {
     if (!LidarDefaults::ENABLE_DISTANCE_TELEMETRY) {
         return;
     }
@@ -42,13 +42,29 @@ void printTelemetryIfEnabled(const LidarReadingArray& readings,
     for (size_t index = 0; index < SENSOR_COUNT; ++index) {
         Serial.print(' ');
         const LidarReading& reading = readings[index];
-        const bool fresh = nowMs - reading.updatedAtMs <=
-                           LidarDefaults::STALE_AFTER_MS;
-        if (reading.valid && fresh) {
+        const uint32_t ageMs = nowMs - reading.updatedAtMs;
+        const char* cacheState = !reading.valid
+                                     ? "INVALID"
+                                     : (ageMs > LidarDefaults::STALE_AFTER_MS
+                                            ? "STALE"
+                                            : "VALID");
+        const uint16_t bit = static_cast<uint16_t>(1u << index);
+        const char* harpState = (frame.activeMask & bit) != 0 ? "ACTIVE"
+                                                              : "IDLE";
+
+        Serial.print(static_cast<unsigned>(index));
+        Serial.print(':');
+        if (reading.valid) {
             Serial.print(reading.distanceMm);
         } else {
             Serial.print('X');
         }
+        Serial.print(':');
+        Serial.print(ageMs);
+        Serial.print(':');
+        Serial.print(cacheState);
+        Serial.print(':');
+        Serial.print(harpState);
     }
     Serial.println();
 }
@@ -73,7 +89,7 @@ void loop() {
     lidars.service(nowMs);
     const HarpaFrame frame = harpa.update(lidars.readings(), nowMs);
     printTransitions(frame);
-    printTelemetryIfEnabled(lidars.readings(), nowMs);
+    printTelemetryIfEnabled(lidars.readings(), frame, nowMs);
 }
 
 #endif  // PIO_UNIT_TESTING

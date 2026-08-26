@@ -52,9 +52,26 @@ inválida.
 A telemetria de calibração fica desabilitada por padrão. Para habilitá-la,
 altere `LidarDefaults::ENABLE_DISTANCE_TELEMETRY` para `true` em
 `include/lidar_config.h` e recompile. A Serial, a 115200 baud, emitirá no
-máximo um quadro `DIST` a cada 100 ms, com 12 campos na ordem da tabela: uma
-distância em milímetros ou `X` quando a leitura não é válida. Desabilite-a
-depois da calibração para reduzir a carga da Serial no loop.
+máximo um quadro `DIST` a cada 100 ms. O formato exato é:
+
+```text
+DIST index:distance_mm_or_X:age_ms:cache_state:harp_state ...
+```
+
+Há exatamente 12 campos depois de `DIST`, um para cada índice da tabela. Por
+exemplo, `0:742:6:VALID:ACTIVE` informa que o cache do sensor 0 contém 742 mm,
+foi atualizado há 6 ms, está válido e a corda está ativa. `cache_state` é
+`VALID` até 100 ms após uma leitura válida, `STALE` acima de 100 ms (mantendo
+a última distância em milímetros) ou `INVALID` quando a última medição não é
+utilizável; nesse último caso, a distância é `X`. `harp_state` é `ACTIVE` ou
+`IDLE` e corresponde ao estado atual do bit no `HarpaFrame`.
+
+Durante o comissionamento, observe se o `age_ms` de cada índice cai
+independentemente quando seu cache recebe uma amostra nova e permanece no
+máximo em 100 ms com estado `VALID`. Um campo que permanece `STALE`, ou alterna
+para `INVALID`/`X`, identifica o sensor cujo cache deixou de receber medições
+utilizáveis. Desabilite a telemetria depois da calibração para reduzir a carga
+da Serial no loop.
 
 ## Boot e diagnóstico
 
