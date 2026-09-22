@@ -12,8 +12,8 @@ uint8_t LidarArray::begin(TwoWire& bus) {
     }
 
     delay(2);
-    bus.begin(LidarDefaults::SDA_PIN, LidarDefaults::SCL_PIN,
-              LidarDefaults::I2C_CLOCK_HZ);
+    bus.begin();
+    bus.setClock(LidarDefaults::I2C_CLOCK_HZ);
 
     for (size_t index = 0; index < SENSOR_COUNT; ++index) {
         if (sensors_[index].begin(bus)) {

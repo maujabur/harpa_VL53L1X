@@ -1,7 +1,9 @@
 #include <Arduino.h>
+#include <Keyboard.h>
 #include <Wire.h>
 
 #include "harpa_controller.h"
+#include "harpa_keymap.h"
 #include "lidar_array.h"
 
 #ifndef PIO_UNIT_TESTING
@@ -16,10 +18,27 @@ void printTransitions(const HarpaFrame& frame) {
         const uint16_t bit = static_cast<uint16_t>(1u << index);
 
         if ((frame.pressedMask & bit) != 0) {
-            Serial.printf("String %u PRESSED\n", static_cast<unsigned>(index));
+            Serial.print(F("String "));
+            Serial.print(static_cast<unsigned>(index));
+            Serial.println(F(" PRESSED"));
         }
         if ((frame.releasedMask & bit) != 0) {
-            Serial.printf("String %u RELEASED\n", static_cast<unsigned>(index));
+            Serial.print(F("String "));
+            Serial.print(static_cast<unsigned>(index));
+            Serial.println(F(" RELEASED"));
+        }
+    }
+}
+
+void emitKeystrokes(const HarpaFrame& frame) {
+    for (size_t index = 0; index < SENSOR_COUNT; ++index) {
+        const uint16_t bit = static_cast<uint16_t>(1u << index);
+
+        if ((frame.pressedMask & bit) != 0) {
+            Keyboard.press(HarpaKeymap::keyForSensor(index));
+        }
+        if ((frame.releasedMask & bit) != 0) {
+            Keyboard.release(HarpaKeymap::keyForSensor(index));
         }
     }
 }
@@ -73,14 +92,23 @@ void printTelemetryIfEnabled(const LidarReadingArray& readings,
 
 void setup() {
     Serial.begin(115200);
+    Keyboard.begin();
 
     const uint8_t available = lidars.begin(Wire);
-    Serial.printf("Lidars available: %u/%u\n", static_cast<unsigned>(available),
-                  static_cast<unsigned>(SENSOR_COUNT));
+    Serial.print(F("Lidars available: "));
+    Serial.print(static_cast<unsigned>(available));
+    Serial.print('/');
+    Serial.println(static_cast<unsigned>(SENSOR_COUNT));
     for (size_t index = 0; index < SENSOR_COUNT; ++index) {
-        const char* result = lidars.sensorAvailable(index) ? "OK" : "FAILED";
-        Serial.printf("Lidar %u: %s at 0x%02X\n", static_cast<unsigned>(index),
-                      result, static_cast<unsigned>(SENSOR_CONFIGS[index].i2cAddress));
+        const __FlashStringHelper* result =
+            lidars.sensorAvailable(index) ? F("OK") : F("FAILED");
+        Serial.print(F("Lidar "));
+        Serial.print(static_cast<unsigned>(index));
+        Serial.print(F(": "));
+        Serial.print(result);
+        Serial.print(F(" at 0x"));
+        Serial.println(static_cast<unsigned>(SENSOR_CONFIGS[index].i2cAddress),
+                       HEX);
     }
 }
 
@@ -88,6 +116,7 @@ void loop() {
     const uint32_t nowMs = millis();
     lidars.service(nowMs);
     const HarpaFrame frame = harpa.update(lidars.readings(), nowMs);
+    emitKeystrokes(frame);
     printTransitions(frame);
     printTelemetryIfEnabled(lidars.readings(), frame, nowMs);
 }

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cstdint>
-
 #include <VL53L1X.h>
 #include <Wire.h>
+
+#include "harpa_array.h"
 
 #include "lidar_config.h"
 #include "lidar_reading.h"

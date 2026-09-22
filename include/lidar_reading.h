@@ -1,8 +1,6 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
-
+#include "harpa_array.h"
 #include "lidar_config.h"
 
 struct LidarReading {
@@ -11,4 +9,4 @@ struct LidarReading {
     bool valid = false;
 };
 
-using LidarReadingArray = std::array<LidarReading, SENSOR_COUNT>;
+using LidarReadingArray = harpa_stl::Array<LidarReading, SENSOR_COUNT>;

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cstdint>
-
+#include "harpa_array.h"
 #include "lidar_reading.h"
 
 struct HarpaFrame {

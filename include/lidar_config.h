@@ -1,8 +1,6 @@
 #pragma once
 
-#include <array>
-#include <cstddef>
-#include <cstdint>
+#include "harpa_array.h"
 
 struct RoiConfig {
     uint8_t width;
@@ -19,9 +17,9 @@ struct LidarConfig {
     uint16_t releaseMm;
 };
 
-constexpr size_t SENSOR_COUNT = 12;
-static_assert(SENSOR_COUNT == 12, "A harpa deve ter exatamente 12 sensores");
-using LidarConfigArray = std::array<LidarConfig, SENSOR_COUNT>;
+constexpr size_t SENSOR_COUNT = 10;
+static_assert(SENSOR_COUNT == 10, "A harpa deve ter exatamente 10 sensores");
+using LidarConfigArray = harpa_stl::Array<LidarConfig, SENSOR_COUNT>;
 
 constexpr uint8_t spadNumberFromCoordinates(uint8_t x, uint8_t y) {
     return y < 8 ? static_cast<uint8_t>(128 + x * 8 + y)
@@ -88,27 +86,28 @@ constexpr bool configsAreValid(const LidarConfigArray& configs) {
     return configsAreValidAt(configs, 0) && pinsAreUniqueAllAt(configs, 0);
 }
 
+// Pinos XSHUT mapeados para o Arduino Leonardo (ATmega32u4).
+// Indisponiveis: 0/1 (Serial RX/TX) e 2/3 (I2C SDA/SCL).
+// Usamos os digitais livres 4-13 (10 sensores).
 constexpr LidarConfigArray SENSOR_CONFIGS{{
     {4,  0x30, {4, 4, 8, 7}, 800, 850},
-    {13, 0x31, {4, 4, 8, 7}, 800, 850},
-    {14, 0x32, {4, 4, 8, 7}, 800, 850},
-    {16, 0x33, {4, 4, 8, 7}, 800, 850},
-    {17, 0x34, {4, 4, 8, 7}, 800, 850},
-    {18, 0x35, {4, 4, 8, 7}, 800, 850},
-    {19, 0x36, {4, 4, 8, 7}, 800, 850},
-    {23, 0x37, {4, 4, 8, 7}, 800, 850},
-    {25, 0x38, {4, 4, 8, 7}, 800, 850},
-    {26, 0x39, {4, 4, 8, 7}, 800, 850},
-    {27, 0x3A, {4, 4, 8, 7}, 800, 850},
-    {32, 0x3B, {4, 4, 8, 7}, 800, 850},
+    {5,  0x31, {4, 4, 8, 7}, 800, 850},
+    {6,  0x32, {4, 4, 8, 7}, 800, 850},
+    {7,  0x33, {4, 4, 8, 7}, 800, 850},
+    {8,  0x34, {4, 4, 8, 7}, 800, 850},
+    {9,  0x35, {4, 4, 8, 7}, 800, 850},
+    {10, 0x36, {4, 4, 8, 7}, 800, 850},
+    {11, 0x37, {4, 4, 8, 7}, 800, 850},
+    {12, 0x38, {4, 4, 8, 7}, 800, 850},
+    {13, 0x39, {4, 4, 8, 7}, 800, 850},
 }};
 
 static_assert(configsAreValid(SENSOR_CONFIGS),
               "Configuracao invalida de pino, endereco, ROI ou histerese");
 
 namespace LidarDefaults {
-constexpr uint8_t SDA_PIN = 21;
-constexpr uint8_t SCL_PIN = 22;
+// No Leonardo (ATmega32u4) o barramento I2C usa pinos fixos: SDA = 2, SCL = 3.
+// Nao sao configuraveis por software, portanto so definimos o clock.
 constexpr uint32_t I2C_CLOCK_HZ = 400000;
 constexpr uint32_t MEASUREMENT_BUDGET_US = 20000;
 constexpr uint32_t MEASUREMENT_PERIOD_MS = 25;
